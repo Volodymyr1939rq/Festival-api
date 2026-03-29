@@ -4,6 +4,8 @@ import { useState } from "react";
 import { TaskStatus, useTasks } from "../hooks/useTask"
 import { useForm } from "react-hook-form";
 import { Briefcase, CheckCircle2, FileText, LayoutList, Plus, UserPlus, Users, X } from "lucide-react";
+import DropDowmMenu from "../components/DropDownMenu";
+import AssigneeDropDown from "../components/AssigneeDropDown";
 
 interface TaskForm{
     title:string,
@@ -13,6 +15,7 @@ interface HostForm{
     fullname:string,
     role:string
 }
+
 export default function TaskBoard(){
    const {host,task,loader,addHost,addTask,updateTaskStatus,assignHost}=useTasks();
 
@@ -22,7 +25,9 @@ export default function TaskBoard(){
    const {
     register:registerHost,
     handleSubmit:handleSubmitHost,
-    reset:resetHost
+    reset:resetHost,
+    watch:watchHost,
+    setValue:setHostValue,
    }=useForm<HostForm>();
 
    const {
@@ -56,6 +61,7 @@ export default function TaskBoard(){
         resetTask();
     }
    }
+   
    const onHostSubmit=async(data:HostForm)=>{
     const success=await addHost({fullName:data.fullname,role:data.role,})
     if(success){
@@ -63,19 +69,23 @@ export default function TaskBoard(){
         resetHost()
     }
    }
+   
    const todoTask=task.filter(t=>t.status===TaskStatus.TODO)
    const inProgress=task.filter(t=>t.status===TaskStatus.IN_PROGRESS)
    const doneTask=task.filter(t=>t.status===TaskStatus.DONE)
 
   const Column = ({ title, status, columnTasks }: { title: string, status: TaskStatus, columnTasks: any[] }) => (
     <div 
-      className="flex flex-col bg-slate-100/70 rounded-xl p-3 min-h-[70vh] w-full border border-slate-200"
+      className="flex flex-col bg-slate-50/80 rounded-2xl p-4 min-h-[70vh] w-full border border-slate-100 shadow-sm"
       onDragOver={handleDragOver}
       onDrop={(e) => handleDrop(e, status)}
     >
-      <div className="flex items-center justify-between mb-4 px-2 pt-1">
-        <h3 className="font-bold text-slate-600 text-xs uppercase tracking-widest flex items-center gap-2">
-          {title} <span className="bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-semibold">{columnTasks.length}</span>
+      <div className="flex items-center justify-between mb-5 px-1">
+        <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wider flex items-center gap-3">
+          {title} 
+          <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-xs font-bold">
+            {columnTasks.length}
+          </span>
         </h3>
       </div>
       
@@ -85,22 +95,15 @@ export default function TaskBoard(){
             key={task.id} 
             draggable
             onDragStart={(e) => handleDragStart(e, task.id)}
-            className="group bg-white p-4 rounded-lg shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:border-blue-400 hover:shadow-md transition-all flex flex-col"
+            className="group bg-white p-4 rounded-xl shadow-sm border border-slate-200/60 cursor-grab active:cursor-grabbing hover:border-blue-300 hover:shadow-md transition-all flex flex-col"
           >
             <h4 className="text-sm font-bold text-slate-800 leading-snug mb-1.5">{task.title}</h4>
-            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{task.description}</p>
+            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">{task.description}</p>
             
-            <div className="mt-4 pt-3 border-t border-slate-100">
-              <select 
-                className="w-full text-xs bg-slate-50/50 text-slate-600 border border-slate-200 hover:border-blue-300 hover:bg-white rounded-md px-2.5 py-1.5 outline-none cursor-pointer transition-colors focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                value={task.assignedHostId || ""}
-                onChange={(e) => assignHost(task.id, e.target.value)}
-              >
-                <option value="" disabled>👤 Призначити...</option>
-                {host.map(h => (
-                  <option key={h.id} value={h.id}>{h.fullName} ({h.role || 'Ведучий'})</option>
-                ))}
-              </select>
+            <div className="mt-auto pt-3 border-t border-slate-50 flex justify-between items-center">
+             <AssigneeDropDown value={task.assignedHostId || null}
+             hosts={host}
+             onChange={(hostId)=>assignHost(task.id,hostId)}></AssigneeDropDown>
             </div>
           </div>
         ))}
@@ -110,36 +113,37 @@ export default function TaskBoard(){
   );
 
   return (
-    <div className="min-h-screen bg-white p-6 md:p-10 font-sans text-slate-900">
-      <div className="max-w-350 mx-auto">
-        
-        {/* Хедер дошки */}
+    <div className="min-h-screen bg-slate-50/30 p-6 md:p-10 font-sans text-slate-900">
+      <div className="max-w-7xl mx-auto"> 
+   
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2 text-sm text-slate-500 font-medium mb-1.5">
-              <Briefcase size={16} className="text-slate-400" />
+            <div className="flex items-center gap-2 text-sm text-slate-400 font-medium mb-1.5">
+              <Briefcase size={16} />
               <span>Проєкти / Фестиваль / Дошка</span>
             </div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+        
+            <h1 className="text-4xl font-extrabold text-blue-600 tracking-tight mb-1">
               Організація події
             </h1>
+            <p className="text-slate-500 text-sm">Керування завданнями та командою фестивалю</p>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button 
               onClick={() => setShowHostModal(true)} 
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-semibold transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+              className="flex items-center justify-center w-12 h-12 rounded-full transition-all text-slate-500 bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 active:scale-95 border border-slate-200 shadow-sm"
+              title="Команда"
             >
-              <Users size={16} className="text-slate-500" />
-              Команда
+              <Users className="w-5 h-5" strokeWidth={2.5} />
             </button>
             
             <button 
               onClick={() => setShowTaskModal(true)} 
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-semibold transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"
+              className="flex items-center justify-center w-12 h-12 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full font-semibold shadow-md hover:shadow-lg transition-all active:scale-95"
+              title="Нове завдання"
             >
-              <Plus size={18} />
-              Нове завдання
+              <Plus className="w-6 h-6" strokeWidth={2.5} />
             </button>
           </div>
         </div>
@@ -206,11 +210,11 @@ export default function TaskBoard(){
 
       {showHostModal && (
         <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col">
             
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-xl">
               <div className="flex items-center gap-2 text-slate-800">
-                <UserPlus size={20} className="text-indigo-600" />
+                <UserPlus size={20} className="text-blue-600" />
                 <h2 className="text-lg font-bold">Додати учасника команди</h2>
               </div>
               <button onClick={() => { setShowHostModal(false); resetHost(); }} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-200 rounded-md">
@@ -227,32 +231,23 @@ export default function TaskBoard(){
                   <input 
                     {...registerHost('fullname', { required: true })} 
                     placeholder="Наприклад: Іван Франко"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm text-slate-800 placeholder:text-slate-400" 
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm text-slate-800 placeholder:text-slate-400" 
                   />
                 </div>
-                <div>
-                  <label className="flex text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 items-center gap-1.5">
-                    <Briefcase size={14}/> Роль на фестивалі
-                  </label>
-                  <select 
-                    {...registerHost('role', { required: true })} 
-                    defaultValue=""
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm text-slate-800"
-                  >
-                    <option value="" disabled>Оберіть роль...</option>
-                    <option value="Ведучий">🎙️ Ведучий</option>
-                    <option value="Звукорежисер">🎧 Звукорежисер</option>
-                    <option value="Світлорежисер">💡 Світлорежисер</option>
-                    <option value="Координатор">📋 Координатор зали</option>
-                  </select>
-                </div>
+               <label className="flex text-xs font-bold test-slate-500 uppercase tracking-wider items-center mb-2 gap-1.5">
+                <Briefcase size={14}/>Роль на фестивалі
+               </label>
+               <input type="hidden" {...registerHost('role',{required:true})}/>
+               <DropDowmMenu value={watchHost('role')}
+               onChange={(val)=>setHostValue('role',val,{shouldValidate:true})}/>
+               
               </div>
 
-              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 rounded-b-xl">
                 <button type="button" onClick={() => { setShowHostModal(false); resetHost(); }} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors shadow-sm">
                   Скасувати
                 </button>
-                <button type="submit" className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2">
+                <button type="submit" className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
                   Додати <UserPlus size={16}/>
                 </button>
               </div>
