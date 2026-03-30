@@ -118,10 +118,6 @@ export default function TaskBoard(){
    
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2 text-sm text-slate-400 font-medium mb-1.5">
-              <Briefcase size={16} />
-              <span>Проєкти / Фестиваль / Дошка</span>
-            </div>
         
             <h1 className="text-4xl font-extrabold text-blue-600 tracking-tight mb-1">
               Організація події
