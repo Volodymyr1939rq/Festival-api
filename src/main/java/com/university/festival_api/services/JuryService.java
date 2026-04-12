@@ -25,7 +25,7 @@ public class JuryService {
 
     public JuryMember addJury(JuryMember member){
         
-        if(juryMember.size()>=7){
+        if(juryMember.size()>=5){
             throw new RuntimeException("Максимальна кількість журі 7");
         }
         if(member.getId()==null){
@@ -42,6 +42,6 @@ public class JuryService {
     }
 
     public boolean isJuryReady(){
-        return juryMember.size()>=3 && juryMember.size()<=7;
+        return juryMember.size()>=3 && juryMember.size()<=5;
     }
 }

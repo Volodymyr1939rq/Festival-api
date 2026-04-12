@@ -4,61 +4,62 @@ import { ChevronDown, ClipboardList, Headphones, Lightbulb, Mic } from "lucide-r
 import { useEffect, useRef, useState } from "react"
 
 interface roleDropDowmProps{
-    value:string,
-    onChange:(value:string)=>void
+  value:string,
+  onChange:(value:string)=>void
 }
 
 export default function DropDowmMenu({value,onChange}:roleDropDowmProps){
-    const [open,setOpen]=useState(false)
-    const dropDowmRef=useRef<HTMLDivElement>(null);
+  const [open,setOpen]=useState(false)
+  const dropDowmRef=useRef<HTMLDivElement>(null);
 
-    const role=[
-        {id:'Ведучий',label:'Ведучий',icon:Mic},
-        {id:'Звукорежисер',label:'Звукорежисер',icon:Headphones},
-        {id:'Світлорежисер',label:'Світлорежисер',icon:Lightbulb},
-        {id:'Координатор',label:'Координатор',icon:ClipboardList}
-    ]
+  const role=[
+    {id:'Ведучий',label:'Ведучий',icon:Mic},
+    {id:'Звукорежисер',label:'Звукорежисер',icon:Headphones},
+    {id:'Світлорежисер',label:'Світлорежисер',icon:Lightbulb},
+    {id:'Координатор',label:'Координатор',icon:ClipboardList}
+  ]
 
-    const selectedRole=role.find(f=>f.id===value)
-    const SelectedIcon=selectedRole?.icon
+  const selectedRole=role.find(f=>f.id===value)
+  const SelectedIcon=selectedRole?.icon
 
-    useEffect(()=>{
-        function handleClickOutSide(event:MouseEvent){
-            if(dropDowmRef.current && !dropDowmRef.current.contains(event.target as Node)){
-                setOpen(false)
-            }
-        }
-        document.addEventListener("mousedown",handleClickOutSide)
-        return()=> document.removeEventListener("mousedown",handleClickOutSide)
-    },[])
+  useEffect(()=>{
+    function handleClickOutSide(event:MouseEvent){
+      if(dropDowmRef.current && !dropDowmRef.current.contains(event.target as Node)){
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown",handleClickOutSide)
+    return()=> document.removeEventListener("mousedown",handleClickOutSide)
+  },[])
 
-    return (
-        <div className="relative" ref={dropDowmRef}>
+  return (
+    <div className="relative w-full" ref={dropDowmRef}>
+      
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`w-full p-2.5 bg-slate-50 border rounded-lg outline-none flex items-center justify-between transition-all text-sm ${
+        className={`w-full p-4 bg-neutral-900 border rounded-2xl outline-none flex items-center justify-between transition-all text-sm font-medium ${
           open 
-            ? 'border-blue-500 ring-4 ring-blue-500/10 bg-white' 
-            : 'border-slate-200 hover:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10'
-        } ${!value ? 'text-slate-400' : 'text-slate-800'}`}
+            ? 'border-emerald-500 ring-2 ring-emerald-500/50 bg-neutral-800' 
+            : 'border-neutral-700 hover:bg-neutral-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50'
+        } ${!value ? 'text-neutral-500' : 'text-white'}`}
       >
         <span className="flex items-center gap-2">
           {selectedRole && SelectedIcon ? (
             <>
-              <SelectedIcon size={16} className="text-blue-500" />
+              <SelectedIcon size={18} className="text-emerald-500" />
               {selectedRole.label}
             </>
           ) : (
             "Оберіть роль..."
           )}
         </span>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown size={18} className={`text-neutral-500 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 w-full mt-2 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="p-1 flex flex-col">
+        <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-[#111322] border border-neutral-700 rounded-2xl shadow-[0_15px_50px_rgba(0,0,0,0.9)] z-9999 animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-2 flex flex-col gap-1">
             {role.map((r) => {
               const Icon = r.icon;
               const isSelected = value === r.id;
@@ -71,12 +72,14 @@ export default function DropDowmMenu({value,onChange}:roleDropDowmProps){
                     onChange(r.id); 
                     setOpen(false); 
                   }}
-                  className={`flex items-center gap-2 px-3 py-2.5 text-sm rounded-md transition-colors w-full text-left ${
-                    isSelected ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'
+                  className={`flex items-center gap-3 px-4 py-3 text-sm rounded-xl transition-all w-full text-left ${
+                    isSelected 
+                      ? 'bg-emerald-500/10 text-emerald-400 font-bold' 
+                      : 'text-neutral-400 hover:bg-white/10 hover:text-white font-medium'
                   }`}
                 >
-                  <Icon size={16} className={isSelected ? 'text-blue-600' : 'text-slate-400'} />
-                  <span className={isSelected ? 'font-bold' : 'font-medium'}>{r.label}</span>
+                  <Icon size={18} className={isSelected ? 'text-emerald-500' : 'text-neutral-500'} />
+                  <span>{r.label}</span>
                 </button>
               )
             })}
@@ -84,5 +87,5 @@ export default function DropDowmMenu({value,onChange}:roleDropDowmProps){
         </div>
       )}
     </div>
-    )
+  )
 }

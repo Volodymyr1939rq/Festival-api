@@ -14,14 +14,20 @@ public class Participant {
     private UUID id=UUID.randomUUID();
     private String firstName;
     private String lastName;
-    private String groupName;
+    private String songTitle;
     private String performanceGenre;
     private Prize prize;
     private Venue venue;
     private List<Equipment> equipments=new ArrayList<>();
     private List<Prop> proplist=new ArrayList<>();
     private List<Criterion> criterion=new ArrayList<>();
-    private int tour1Score=0;
-    private int tour2Score=0;
-    private int tour3Score=0;
+    private Integer tour1Score=0;
+    private Integer tour2Score=0;
+    private Integer tour3Score=0;
+    
+    private Integer allocatedSemiFinal;
+    private Integer publicVote=0;
+    private Double finalScore;
+    private String country;
+    private String photoBase64;
 }

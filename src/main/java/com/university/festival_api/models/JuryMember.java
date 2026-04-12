@@ -13,4 +13,5 @@ public class JuryMember {
     private UUID id=UUID.randomUUID();
     private String fullName;
     private String qualification;
+    private String photoBase64;
 }

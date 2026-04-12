@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.university.festival_api.models.Criterion;
+import com.university.festival_api.dto.EurovisionVoteRequest; 
 import com.university.festival_api.models.Participant;
 import com.university.festival_api.services.ExcelReportService;
 import com.university.festival_api.services.ParticipantService;
@@ -32,38 +31,63 @@ public class ParticipantController {
    private final ParticipantService participantService;
    private final ExcelReportService excelReportService;
 
-   public ParticipantController(ParticipantService participantService,ExcelReportService excelReportService){
-       this.participantService=participantService;
-       this.excelReportService=excelReportService;
+   public ParticipantController(ParticipantService participantService, ExcelReportService excelReportService){
+       this.participantService = participantService;
+       this.excelReportService = excelReportService;
    }
     
     @GetMapping
     public List<Participant> getAllParticipants() {
         return participantService.getAllParticipant();
     }
+
     @PostMapping
     public Participant addNewParticipants(@RequestBody Participant participant) {
         return participantService.addParticipant(participant);
     }
-    @PutMapping("/{id}/evaluate")
-    public ResponseEntity<?> evaluate(@PathVariable("id") String id,@RequestParam("tour") int tourNumber,@RequestBody List<Criterion> criterions){
-        try {
-            Participant evaluatedParticipant=participantService.evaluateParticipant(id, tourNumber, criterions);
-            return ResponseEntity.ok(evaluatedParticipant);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }catch(RuntimeException e){
-            return ResponseEntity.status(404).body(e.getMessage());
+
+   @PostMapping("/eurovision-evaluate")
+public ResponseEntity<?> evaluateEurovisionTour(@RequestBody EurovisionVoteRequest request) {
+    try {
+    
+        if (request.getJuryId() == null) {
+            return ResponseEntity.badRequest()
+                .body("{\"success\": false, \"error\": \"ID судді обов'язкове (juryId is null)\"}");
         }
+
+        boolean success = participantService.submitEurovisionVotes(request);
         
+        if (success) {
+            return ResponseEntity.ok()
+                .body("{\"success\": true, \"message\": \"Голоси успішно збережено.\"}");
+        } else {
+            return ResponseEntity.status(500)
+                .body("{\"success\": false, \"message\": \"Помилка при збереженні даних у файл.\"}");
+        }
+
+    } catch (IllegalArgumentException e) {
+ 
+        return ResponseEntity.badRequest()
+            .body("{\"success\": false, \"error\": \"" + e.getMessage() + "\"}");
+            
+    } catch (RuntimeException e) {
+   
+        return ResponseEntity.status(409)
+            .body("{\"success\": false, \"error\": \"" + e.getMessage() + "\"}");
+            
+    } catch (Exception e) {
+     
+        return ResponseEntity.internalServerError()
+            .body("{\"success\": false, \"error\": \"Внутрішня помилка сервера\"}");
     }
+}
+
     @GetMapping("/export/excel")
     public ResponseEntity<Resource> exportToExcel(){
-      List<Participant> participants=participantService.getAllParticipant();
-      excelReportService.createExcelFile(participants);
-
-      byte[] excelBytes=excelReportService.createExcelFile(participants);
-      Resource resource=new ByteArrayResource(excelBytes);
+      List<Participant> participants = participantService.getAllParticipant();
+      
+      byte[] excelBytes = excelReportService.createExcelFile(participants);
+      Resource resource = new ByteArrayResource(excelBytes);
       
       return ResponseEntity.ok()
       .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=festival_report.xlsx")
@@ -73,12 +97,45 @@ public class ParticipantController {
     }
 
     @PutMapping("/{id}")
-    public Participant updateParticipant(@PathVariable("id") String id,@RequestBody Participant updatedParticipant){
+    public Participant updateParticipant(@PathVariable("id") String id, @RequestBody Participant updatedParticipant){
         return participantService.updateParticipant(id, updatedParticipant);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteParticipant(@PathVariable("id")String id){
+    public void deleteParticipant(@PathVariable("id") String id){
         participantService.deleteParticipant(id);
+    }
+
+    @PostMapping("/{id}/public-vote")
+    public void addPublicVote(@PathVariable("id") String id){
+        participantService.addPublicVote(id);
+    }
+
+    @GetMapping("/final-results")
+    public ResponseEntity<List<Participant>> getFinalResults(){
+        try {
+            List<Participant> result=participantService.getFinalResults();
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+           return ResponseEntity.internalServerError().build();
+        }
+    }
+    @PostMapping("/draw")
+    public ResponseEntity<List<Participant>> conductDraw() {
+        try {
+            List<Participant> updatedParticipants = participantService.conductAllocationDraw();
+            return ResponseEntity.ok(updatedParticipants);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    @GetMapping("/finalists")
+    public ResponseEntity<List<Participant>> getFinalists(){
+        try {
+            List<Participant> finalists=participantService.getGrandFinalists();
+            return ResponseEntity.ok(finalists);
+        } catch (Exception e) {
+           return ResponseEntity.internalServerError().build();
+        }
     }
 }

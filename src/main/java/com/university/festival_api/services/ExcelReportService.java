@@ -22,7 +22,7 @@ public class ExcelReportService {
         ByteArrayOutputStream out=new ByteArrayOutputStream()){
         Sheet sheet=workbook.createSheet("Festival Sheet");
         Row headerRow=sheet.createRow(0);
-        String[] colums={"ID", "Ім'я", "Прізвище", "Група", "Жанр", "Тур 1", "Тур 2", "Тур 3", "Загальний бал","Локація","Реквізит","Техніка","Приз"};
+        String[] colums={"ID", "Ім'я", "Прізвище", "Пісня", "Жанр", "Тур 1", "Тур 2", "Тур 3", "Загальний бал","Локація","Реквізит","Техніка","Приз"};
         for(int i=0;i<colums.length;i++){
             Cell cell=headerRow.createCell(i);
             cell.setCellValue(colums[i]);
@@ -33,7 +33,7 @@ public class ExcelReportService {
             row.createCell(0).setCellValue(participant.getId().toString());
             row.createCell(1).setCellValue(participant.getFirstName());
             row.createCell(2).setCellValue(participant.getLastName());
-            row.createCell(3).setCellValue(participant.getGroupName());
+            row.createCell(3).setCellValue(participant.getSongTitle());
             row.createCell(4).setCellValue(participant.getPerformanceGenre());
             row.createCell(5).setCellValue(participant.getTour1Score());
             row.createCell(6).setCellValue(participant.getTour2Score());
