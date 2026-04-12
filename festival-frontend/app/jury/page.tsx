@@ -29,7 +29,7 @@ export default function JuryPage() {
     loading,
     addItem,
     handleDelete
-  } = useApi<JuryMember>('http://localhost:8080/api/jury')
+  } = useApi<JuryMember>(process.env.NEXT_PUBLIC_API_URL + '/api/jury')
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<JuryFormData>()
 

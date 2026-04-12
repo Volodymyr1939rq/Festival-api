@@ -22,7 +22,7 @@ interface Participant {
   country?:string;
 }
 
-const API_URL = 'http://localhost:8080/api/participants';
+const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api/participants';
 
 export function useParticipants() {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -34,7 +34,7 @@ export function useParticipants() {
     try {
       const [partRes, juryRes] = await Promise.all([
         fetch(API_URL),
-        fetch('http://localhost:8080/api/jury/ready')
+        fetch(process.env.NEXT_PUBLIC_API_URL + '/api/jury/ready')
       ]);
       
       if (partRes.ok) setParticipants(await partRes.json());
@@ -130,7 +130,7 @@ export function useParticipants() {
 
   const conductAllocationDraw=async ()=>{
     try {
-       const res=await fetch('http://localhost:8080/api/participants/draw',{method:'POST'})
+       const res=await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/participants/draw',{method:'POST'})
          if(res.ok){
           const updatedParticipants=await res.json()
           setParticipants(updatedParticipants)
@@ -145,7 +145,7 @@ export function useParticipants() {
 
   const getGrandFinalist=async()=>{
     try {
-      const res=await fetch('http://localhost:8080/api/participants/finalists')
+      const res=await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/participants/finalists')
       if(res.ok){
         return await res.json()
       }

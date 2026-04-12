@@ -24,7 +24,7 @@ export function EvaluateModal({ participant, onClose, onSubmit, serverError }: E
   const [selectedJuryId, setSelectedJuryId] = useState("");
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
 
-  const { data: juryList, loading: juryLoading } = useApi<JuryMember>('http://localhost:8080/api/jury');
+  const { data: juryList, loading: juryLoading } = useApi<JuryMember>(process.env.NEXT_PUBLIC_API_URL + '/api/jury');
 
   useEffect(() => {
     if (participant) {

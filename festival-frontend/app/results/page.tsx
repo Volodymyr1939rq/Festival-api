@@ -16,7 +16,7 @@ interface FinalResult {
 
 export default function ResultsPage() {
   
-  const { data: results, loading } = useApi<FinalResult>('http://localhost:8080/api/participants/final-results');
+  const { data: results, loading } = useApi<FinalResult>(process.env.NEXT_PUBLIC_API_URL + '/api/participants/final-results');
 
   if (loading) return (
     <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center text-white">

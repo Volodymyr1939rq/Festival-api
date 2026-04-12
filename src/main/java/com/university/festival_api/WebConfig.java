@@ -9,7 +9,8 @@ public class WebConfig implements WebMvcConfigurer{
     
     @Override
     public void addCorsMappings(CorsRegistry registry){
-        registry.addMapping("/**").allowedOrigins("https://festival-api-j9rv.vercel.app")
+        registry.addMapping("/**")
+        .allowedOriginPatterns("*")
         .allowedMethods("GET","PUT","POST","DELETE","OPTIONS")
         .allowedHeaders("*")
         .allowCredentials(true);

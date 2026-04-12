@@ -6,7 +6,7 @@ export interface Spectator{
     ticketNumber:string
 }
 
-const API_URL='http://localhost:8080/api/spectators'
+const API_URL=process.env.NEXT_PUBLIC_API_URL + '/api/spectators'
 
 export function useSpectators(){
   const [spectators,setSpectators]=useState<Spectator[]>([])

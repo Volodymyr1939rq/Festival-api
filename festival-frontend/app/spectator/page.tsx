@@ -22,7 +22,7 @@ export default function SpectatorsPage() {
   const { spectators, loader, addSpectator, deleteSpectator } = useSpectators();
   
 
-  const { data: participants, loading: participantsLoading } = useApi<Participant>('http://localhost:8080/api/participants');
+  const { data: participants, loading: participantsLoading } = useApi<Participant>(process.env.NEXT_PUBLIC_API_URL + '/api/participants');
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [votingSpectatorId, setVotingSpectatorId] = useState<string | null>(null);

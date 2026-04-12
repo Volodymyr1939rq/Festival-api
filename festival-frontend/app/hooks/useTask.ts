@@ -22,8 +22,8 @@ export interface FestivalTask{
     assignedHostId?:string
 }
 
-const HOST_API='http://localhost:8080/api/hosts'
-const TASK_API='http://localhost:8080/api/tasks'
+const HOST_API=process.env.NEXT_PUBLIC_API_URL + '/api/hosts'
+const TASK_API=process.env.NEXT_PUBLIC_API_URL + '/api/tasks'
 
 export function useTasks(){
     const [host,setHost]=useState<Host[]>([])
