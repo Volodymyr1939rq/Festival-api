@@ -62,19 +62,14 @@ export default function SpectatorsPage() {
     setIsVoting(participantId); 
 
     try {
-      const response = await fetch(`http://localhost:8080/api/participants/${participantId}/public-vote`, { 
-        method: 'POST' 
-      });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/participants/${participantId}/public-vote`, { method: 'POST'});
 
       if (!response.ok) throw new Error("Помилка сервера");
-      
-      // Створюємо новий список голосів
+  
       const newVotedList = [...votedSpectators, votingSpectatorId];
-      
-      // Оновлюємо стейт
+    
       setVotedSpectators(newVotedList);
-      
-      // Зберігаємо в пам'ять браузера (важливо!)
+  
       localStorage.setItem('votedTickets', JSON.stringify(newVotedList));
       
       setVotingSpectatorId(null);
