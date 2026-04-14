@@ -1,6 +1,6 @@
 "use client"
 
-import { Download, Plus, Trash2, Music, Heart, Star, Pencil } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import DeleteModal from "./components/DeleteModal";
 import { EvaluateModal } from "./components/EvaluateModal";
@@ -9,23 +9,8 @@ import AddParticipationsForm from "./components/AddParticipantsForm";
 import { useParticipants } from "./hooks/useParticipant";
 import { EurovisionTabs } from "./components/EuroVisionTabs";
 import { TourList } from "./components/TourList";
-import { CountryBadge } from "./components/CountryBadge";
-
-interface Participant {
-  id: string;
-  firstName: string;
-  lastName: string;
-  songTitle: string;
-  performanceGenre: string;
-  tour1Score: number;
-  tour2Score: number;
-  tour3Score: number;
-  photoBase64?:string;
-  allocatedSemiFinal:number;
-  prize?: { title: string; description: string } | null;
-  venue?: { name: string } | null;
-  country?:string;
-}
+import ParticipantCard from "./components/ParticipantCard";
+import { Participant } from "./types";
 
 export default function Home() {
   const [showform, setShowForm] = useState(false);
@@ -103,8 +88,10 @@ export default function Home() {
     fetchGrandFinalist()
   },[activeTab,participants])
 
-  const semiFinal1 = participants.filter(p=>Number(p.allocatedSemiFinal)===1);
-  const semiFinal2 = participants.filter(p=>Number(p.allocatedSemiFinal)===2);
+  const semiFinal1 = participants.filter(p=>Number(p.allocatedSemiFinal)===1)
+  .sort((a,b)=>(a.performanceOrder||0)-(b.performanceOrder||0));
+  const semiFinal2 = participants.filter(p=>Number(p.allocatedSemiFinal)===2)
+  .sort((a,b)=>(a.performanceOrder||0)-(b.performanceOrder||0));
   const needDraw=participants.length>0 && participants.some(s=>!s.allocatedSemiFinal)
   let displayedParticipants = participants;
   if (activeTab === "sf1") displayedParticipants = semiFinal1;
@@ -170,59 +157,18 @@ export default function Home() {
         ) : (
           <div className="w-full relative z-10">
             
-            {activeTab === "all" && (
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
-  {participants.map(p => (
-    <div 
-      key={p.id} 
-      className="relative group rounded-4xl overflow-hidden aspect-2/3 shadow-2xl transition-all duration-500 hover:scale-[1.02] bg-[#050505]"
-    >
-   
-      <div className="absolute inset-0 z-0">
-        <img 
-          src={p.photoBase64 || "https://images.unsplash.com/photo-1516280440502-8610731fa382?q=80&w=600&auto=format&fit=crop"} 
-          alt={`${p.firstName} ${p.lastName}`}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-black via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-      </div>
-
-      <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-40 transform translate-x-2 group-hover:translate-x-0">
-        <button onClick={() => setUpdateParticipant(p)} className="p-3 bg-white/10 hover:bg-blue-500 backdrop-blur-md rounded-full text-white transition-all">
-          <Pencil size={18} />
-        </button>
-        <button onClick={() => setDeleteParticipant(p)} className="p-3 bg-white/10 hover:bg-red-500 backdrop-blur-md rounded-full text-white transition-all">
-          <Trash2 size={18} />
-        </button>
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 p-5 md:p-7 flex flex-col items-center z-30 pointer-events-none">
-        
-        <h2 className="text-3xl md:text-4xl font-black text-white text-center uppercase tracking-tighter mb-4 drop-shadow-2xl">
-          {p.firstName}
-        </h2>
-
-       <div className="flex items-center justify-center gap-6 w-full mb-4"> 
-
-  <div className="flex items-center gap-2 bg-[#1a1525] text-white px-4 py-2 rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.3)] border border-white/5 cursor-default hover:bg-[#231d33] transition-colors z-0">
-    <Music size={14} className="text-white/70" />
-    <span className="font-bold text-xs uppercase tracking-wider truncate max-w-24">
-      {p.songTitle}
-    </span>
-  </div>
-
-{p.country && (
-<CountryBadge country={p.country}/>
-  
+           {activeTab === "all" && (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+    {participants.map(p => (
+      <ParticipantCard
+      key={p.id}
+      participant={p}
+      onEdit={setUpdateParticipant}
+      onDelete={setDeleteParticipant}
+      />
+      ))}
+   </div>
 )}
-
-</div>
-      </div>
-
-    </div>
-  ))}
-</div>
-            )}
 
             {activeTab === "sf1" && (
               <TourList 

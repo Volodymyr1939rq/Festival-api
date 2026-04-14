@@ -150,7 +150,6 @@ export default function AddParticipationsForm({ onSubmit, onCancel }: AddPartici
                 onChange={(val)=>setValue('country',val,{shouldValidate:true,shouldDirty:true})}></CountrySelect>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -220,7 +219,7 @@ export default function AddParticipationsForm({ onSubmit, onCancel }: AddPartici
             type="submit" 
             className="bg-linear-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white px-8 py-3 rounded-full font-extrabold shadow-[0_0_15px_rgba(236,72,153,0.3)] hover:shadow-[0_0_25px_rgba(236,72,153,0.5)] transition-all active:scale-95"
           >
-            Зберегти в базу
+            Зберегти
           </button>
         </div>
       </form>

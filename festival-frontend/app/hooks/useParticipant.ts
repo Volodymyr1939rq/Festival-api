@@ -20,6 +20,7 @@ interface Participant {
   prize?: Prize | null;
   venue?: { name: string, capacity: number }
   country?:string;
+  performanceOrder?:number;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL + '/api/participants';

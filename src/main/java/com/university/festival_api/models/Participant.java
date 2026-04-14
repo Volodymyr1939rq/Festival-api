@@ -30,4 +30,5 @@ public class Participant {
     private Double finalScore;
     private String country;
     private String photoBase64;
+    private Integer performanceOrder;
 }

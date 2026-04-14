@@ -1,14 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { User, Camera, Music, Globe } from 'lucide-react';
+import { CountrySelect } from './CountrySelect';
+import { error } from 'console';
 
 interface EditFormData {
   firstName: string;
   lastName: string;
-  groupName: string;
+  songTitle: string;
+  country: string;  
   performanceGenre: string;
   venueName: string;
   equipment: string[];
   props: string[];
+  photoBase64?: string; 
 }
 
 interface EditModalProps {
@@ -18,163 +23,189 @@ interface EditModalProps {
 }
 
 export default function EditModal({ participant, onClose, onSubmit }: EditModalProps) {
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   const getInitialValues = () => {
     if (!participant) return {};
     return {
       firstName: participant.firstName,
       lastName: participant.lastName,
-      groupName: participant.groupName,
+      songTitle: participant.songTitle || '',
+      country: participant.country || '',
       performanceGenre: participant.performanceGenre,
-      venue: participant.venue?.name || 'Головна сцена',
+      venueName: participant.venue?.name || 'Головна сцена',
       equipment: participant.equipments ? participant.equipments.map((eq: any) => eq.name) : [],
-      props: participant.proplist ? participant.proplist.map((p: any) => p.title) : []
+      props: participant.proplist ? participant.proplist.map((p: any) => p.title) : [],
+      photoBase64: participant.photoBase64 || ''
     }
   }
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<EditFormData>({
+  const { register, handleSubmit, setValue, watch, reset,formState:{errors} } = useForm<EditFormData>({
     defaultValues: getInitialValues()
-  })
+  });
+
+  const selectedCountry=watch('country')
 
   useEffect(() => {
-    if (participant)
-      reset(getInitialValues())
-  }, [participant, reset])
+    if (participant) {
+      reset(getInitialValues());
+      setPreviewImage(participant.photoBase64 || null);
+    }
+  }, [participant, reset]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setPreviewImage(base64String);
+        setValue('photoBase64', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!participant) return null;
 
   const handleFormSubmit = (data: EditFormData) => {
     const payload = {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      groupName: data.groupName,
-      performanceGenre: data.performanceGenre,
+      ...data,
       venue: {
         name: data.venueName,
         capacity: data.venueName === "Головна сцена" ? 500 : 150
       },
       equipments: data.equipment ? data.equipment.map(eq => ({ name: eq, quantity: 1 })) : [],
       proplist: data.props ? data.props.map((p, index) => ({ title: p, propNumber: index + 1 })) : []
-    }
-    onSubmit(payload)
-  }
+    };
+    onSubmit(payload);
+  };
 
   return (
-    // Змінили p-4 на sm:p-8 для кращих відступів на великих екранах
-    <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-8 transition-all">
-      
-      {/* Головний контейнер тепер має max-h-[90vh] і flex-col для правильного внутрішнього скролу */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-[#111322]/90 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center z-100 p-4 sm:p-8 transition-all">
+      <div className="relative w-full max-w-3xl max-h-[90vh] bg-[#0c0d18]/95 backdrop-blur-2xl rounded-[3rem] border border-white/10 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
         
-        {/* Декоративні фонові плями (не скроляться) */}
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-pink-600/10 blur-[80px] rounded-full pointer-events-none z-0"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[80px] rounded-full pointer-events-none z-0"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[100px] rounded-full pointer-events-none"></div>
 
-        {/* ВНУТРІШНІЙ КОНТЕНТ ЗІ СКРОЛОМ */}
-        {/* Додано стилізований скролбар через класи Tailwind */}
-        <div className="relative z-10 overflow-y-auto p-6 sm:p-10 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
+        <div className="relative z-10 overflow-y-auto p-6 sm:p-10 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full">
           
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Редагування профілю</h2>
-            <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white hover:bg-white/10 border border-white/5 transition-all font-bold">✕</button>
+            <div>
+               <h2 className="text-4xl font-black text-white uppercase tracking-tighter italic">Редагувати</h2>
+               <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest mt-1">Оновлення даних учасника</p>
+            </div>
+            <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 text-white/40 hover:text-white hover:bg-white/10 border border-white/5 transition-all font-light text-2xl">✕</button>
           </div>
           
-          <form onSubmit={handleSubmit(handleFormSubmit)}>
-          
-            {/* СЕКЦІЯ 1 */}
-            <h3 className="text-sm font-black text-pink-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-              <span className="bg-pink-500 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px]">1</span>
-              Основні дані
-            </h3>
-            <div className="grid grid-cols-2 gap-5 mb-8">
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Ім'я</label>
-                <input {...register('firstName', { required: true })} 
-                  className="w-full bg-white/5 border border-white/10 text-white p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-white/10 transition-all placeholder:text-white/20" />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Прізвище</label>
-                <input {...register('lastName', { required: true })} 
-                  className="w-full bg-white/5 border border-white/10 text-white p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-white/10 transition-all placeholder:text-white/20" />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Група</label>
-                <input {...register('groupName', { required: true })} 
-                  className="w-full bg-white/5 border border-white/10 text-white p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-white/10 transition-all placeholder:text-white/20" />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Жанр</label>
-                <input {...register('performanceGenre', { required: true })} 
-                  className="w-full bg-white/5 border border-white/10 text-white p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:bg-white/10 transition-all placeholder:text-white/20" />
-              </div>
-            </div>
-
-            <div className="w-full h-px bg-linear-to-r from-transparent via-white/10 to-transparent mb-8"></div>
+          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-10">
             
-            {/* СЕКЦІЯ 2 */}
-            <h3 className="text-sm font-black text-indigo-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-              <span className="bg-indigo-500 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px]">2</span>
-              Технічний райдер
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-black/30 p-6 rounded-2xl border border-white/5 mb-10">
-              
-              <div>
-                <label className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">Локація (Сцена)</label>
-                <select {...register('venueName', { required: true })} 
-                  className="w-full bg-white/5 border border-white/10 text-white p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                  <option value="Головна сцена" className="bg-[#111322]">Головна сцена</option>
-                  <option value="Малий зал" className="bg-[#111322]">Малий зал</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">Обладнання</label>
-                <div className="space-y-3">
-                  {['Радіомікрофон', 'Стійка', 'Проєктор', 'Монітори'].map((item) => (
-                    <label key={item} className="flex items-center gap-3 text-sm font-bold text-neutral-300 cursor-pointer hover:text-white transition-colors group">
-                      <div className="relative flex items-center justify-center">
-                        <input type="checkbox" value={item} {...register('equipment')} 
-                          className="peer appearance-none w-5 h-5 border-2 border-white/20 rounded bg-transparent checked:bg-indigo-500 checked:border-indigo-500 focus:outline-none transition-all cursor-pointer" />
-                        <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      {item}
-                    </label>
-                  ))}
+            <div className="flex flex-col items-center justify-center mb-4">
+              <div className="relative group">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/5 bg-neutral-900 flex items-end justify-center">
+                  {previewImage ? (
+                    <img src={previewImage} className="w-full h-full object-cover" alt="Preview" />
+                  ) : (
+                    <User size={82} className="text-neutral-700 translate-y-1" />
+                  )}
                 </div>
+                <label className="absolute bottom-0 right-0 w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center cursor-pointer border-4 border-[#0c0d18] hover:bg-indigo-500 transition-all">
+                  <Camera size={18} className="text-white" />
+                  <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                </label>
               </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">Реквізит</label>
-                <div className="space-y-3">
-                  {['Стілець', 'Стіл', 'Фортепіано', 'Ширма'].map((item) => (
-                    <label key={item} className="flex items-center gap-3 text-sm font-bold text-neutral-300 cursor-pointer hover:text-white transition-colors group">
-                      <div className="relative flex items-center justify-center">
-                        <input type="checkbox" value={item} {...register('props')} 
-                          className="peer appearance-none w-5 h-5 border-2 border-white/20 rounded bg-transparent checked:bg-indigo-500 checked:border-indigo-500 focus:outline-none transition-all cursor-pointer" />
-                        <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      {item}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
             </div>
 
-            {/* КНОПКИ */}
-            <div className="flex gap-4 justify-end">
-              <button type="button" onClick={onClose} 
-                className="px-6 py-3 rounded-xl font-bold text-neutral-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+            <div className="space-y-6">
+              <h3 className="text-xs font-black text-indigo-500 uppercase tracking-[0.3em] flex items-center gap-3">
+                <span className="h-px w-8 bg-indigo-500/50"></span> Персональна інформація
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="flex text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-2 px-1">Ім'я</label>
+                  <input {...register('firstName', { required: true })} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="flex text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-2 px-1">Прізвище</label>
+                  <input {...register('lastName', { required: true })} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="flex text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-2 px-1 items-center gap-2">
+                    <Music size={10}/> Назва пісні
+                  </label>
+                  <input {...register('songTitle', { required: true })} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="flex text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-2 px-1 items-center gap-2">
+                    <Globe size={10}/> Країна
+                  </label>
+                  <CountrySelect 
+                  value={selectedCountry || ''}
+                  name='country'
+                  onChange={(val)=>setValue('country',val,{shouldValidate:true,shouldDirty:true})}/>
+                   <input type='hidden' {...register('country', { required: true })} />
+                   {errors.country && (
+                    <p className='text-[9px] text-red-500 font-bold uppercase mt-2 ml-1'>
+                      Будь ласка,оберіть країну
+                    </p>
+                   )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-xs font-black text-pink-500 uppercase tracking-[0.3em] flex items-center gap-3">
+                <span className="h-px w-8 bg-pink-500/50"></span> Деталі виступу
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="flex text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-2 px-1">Жанр</label>
+                  <input {...register('performanceGenre', { required: true })} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-2xl focus:ring-2 focus:ring-pink-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-2 px-1">Сцена</label>
+                  <select {...register('venueName')} className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer">
+                    <option value="Головна сцена" className="bg-neutral-900 text-white">Головна сцена</option>
+                    <option value="Малий зал" className="bg-neutral-900 text-white">Малий зал</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white/5 p-8 rounded-4xl border border-white/10">
+              <div>
+                <label className="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">Обладнання</label>
+                <div className="grid grid-cols-1 gap-3">
+                  {['Радіомікрофон', 'Стійка', 'Проєктор', 'Монітори'].map((item) => (
+                    <label key={item} className="flex items-center gap-3 text-sm font-bold text-neutral-400 cursor-pointer hover:text-white transition-all group">
+                      <input type="checkbox" value={item} {...register('equipment')} className="w-5 h-5 rounded-lg border-2 border-white/10 bg-transparent checked:bg-indigo-600 transition-all cursor-pointer" />
+                      {item}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-pink-400 uppercase tracking-widest mb-4">Реквізит</label>
+                <div className="grid grid-cols-1 gap-3">
+                  {['Стілець', 'Стіл', 'Фортепіано', 'Ширма'].map((item) => (
+                    <label key={item} className="flex items-center gap-3 text-sm font-bold text-neutral-400 cursor-pointer hover:text-white transition-all group">
+                      <input type="checkbox" value={item} {...register('props')} className="w-5 h-5 rounded-lg border-2 border-white/10 bg-transparent checked:bg-pink-600 transition-all cursor-pointer" />
+                      {item}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-6">
+              <button type="button" onClick={onClose} className="flex-1 px-8 py-4 rounded-2xl font-black text-neutral-400 bg-white/5 border border-white/5 hover:bg-white/10 hover:text-white transition-all uppercase tracking-widest text-xs">
                 Скасувати
               </button>
-              <button type="submit" 
-                className="bg-linear-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white px-8 py-3 rounded-xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(219,39,119,0.3)] hover:shadow-[0_0_30px_rgba(219,39,119,0.5)] transition-all transform hover:-translate-y-0.5">
-                Зберегти зміни
+              <button type="submit" className="flex-2 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-lg shadow-indigo-600/20 transition-all transform hover:-translate-y-1 active:scale-95">
+                Оновити профіль
               </button>
             </div>
+
           </form>
         </div>
       </div>

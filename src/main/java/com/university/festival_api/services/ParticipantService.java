@@ -98,7 +98,6 @@ public class ParticipantService {
             else if (tourNumber == 2) p.setTour2Score(p.getTour2Score() + vote.getScore());
             else if (tourNumber == 3) p.setTour3Score(p.getTour3Score() + vote.getScore());
 
-            assignPrizeAutomaticaly(p);
         }
         
         xmlStorageService.saveParticipants(participants);
@@ -138,27 +137,6 @@ public class ParticipantService {
         throw new RuntimeException("Учасника з ID " + id + " не знайдено");
        }
     }
-   private void assignPrizeAutomaticaly(Participant participant){
-       
-        int finalScore = participant.getTour3Score();
-        
-        if(finalScore == 0){
-            participant.setPrize(null);
-            return;
-        }
-
-        if(finalScore >= 45){
-            participant.setPrize(new Prize(UUID.randomUUID(),"Гран-прі", "Абсолютний переможець фестивалю"));
-        }else if(finalScore >= 40){
-            participant.setPrize(new Prize(UUID.randomUUID(),"Лауреат I ступеня", "За високу виконавську майстерність"));
-        }else if(finalScore >= 30){
-            participant.setPrize(new Prize(UUID.randomUUID(),"Лауреат II ступеня", "За яскравий та емоційний виступ"));
-        }else if(finalScore >= 20){
-            participant.setPrize(new Prize(UUID.randomUUID(),"Дипломант", "За участь у фіналі фестивалю"));
-        }else{
-            participant.setPrize(null);
-        }
-    }
 
 public void addPublicVote(String participantId) {
         List<Participant> freshData=xmlStorageService.loadParticipant();
@@ -181,7 +159,6 @@ public void addPublicVote(String participantId) {
     public List<Participant> getFinalResults() {
         List<Participant> results = getGrandFinalists();
 
-        // 1. Сортуємо учасників за кількістю голосів публіки, щоб роздати бали Євробачення (12, 10, 8...)
         results.sort((p1, p2) ->{
             int vote1=(p1.getPublicVote()!=null) ? p1.getPublicVote():0;
             int vote2=(p2.getPublicVote()!=null) ? p2.getPublicVote():0;
@@ -200,13 +177,9 @@ public void addPublicVote(String participantId) {
                 pointsToGive = eurovisionPoints[i];
             }
             
-            double tour3Score = 0.0;
-            if(p.getTour3Score() != null){
-               tour3Score = p.getTour3Score().doubleValue();
-            }
+            double tour3Score =(p.getTour3Score()!=null) ? p.getTour3Score().doubleValue():0.0;
+            p.setFinalScore(tour3Score+pointsToGive);
 
-            double totalScore = tour3Score + pointsToGive;
-            p.setFinalScore(totalScore); 
         }
 
         results.sort((p1, p2) -> {
@@ -219,11 +192,28 @@ public void addPublicVote(String participantId) {
             
             int pub1 = (p1.getPublicVote() != null) ? p1.getPublicVote() : 0;
             int pub2 = (p2.getPublicVote() != null) ? p2.getPublicVote() : 0;
-            
-            return Integer.compare(pub2, pub1);
-        });
+            if(pub1!=pub2){
 
-        return results;
+                return Integer.compare(pub2, pub1);
+            }
+            double jury1=(p1.getTour3Score()!=null) ? p1.getTour3Score():0;
+            double jury2=(p2.getTour3Score()!=null) ? p2.getTour3Score():0;
+            return Double.compare(jury2, jury1);
+        });
+for (int i = 0; i < results.size(); i++) {
+        Participant p = results.get(i);
+        
+        if (i == 0) {
+            p.setPrize(new Prize(UUID.randomUUID(), "Переможець", "Кришталевий мікрофон")); 
+        } else {
+         
+            p.setPrize(null);
+        }
+    }
+
+    xmlStorageService.saveParticipants(this.participants);
+
+    return results;
     }
 
 public List<Participant> conductAllocationDraw(){
@@ -231,13 +221,17 @@ public List<Participant> conductAllocationDraw(){
  Collections.shuffle(participants);
 
  int half=participants.size()/2;
+ int orderSf1=1;
+ int orderSf2=1;
  for(int i=0;i<participants.size();i++){
    if(i<half){
     participants.get(i).setAllocatedSemiFinal(1);
+    participants.get(i).setPerformanceOrder(orderSf1++);
    }else{
     participants.get(i).setAllocatedSemiFinal(2);
+     participants.get(i).setPerformanceOrder(orderSf2++);
    }
-   System.out.println("Учасник: " + participants.get(i).getFirstName() + " -> Півфінал: " + participants.get(i).getAllocatedSemiFinal());
+   
  }
  xmlStorageService.saveParticipants(participants);
  this.participants=participants;
