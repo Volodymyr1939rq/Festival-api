@@ -14,6 +14,7 @@ import com.university.festival_api.models.Host;
 import com.university.festival_api.models.JuryMember;
 import com.university.festival_api.models.Participant;
 import com.university.festival_api.models.Spectator;
+import com.university.festival_api.models.User;
 
 @Service
 public class XmlStorageService {
@@ -22,6 +23,7 @@ public class XmlStorageService {
     private final String HOST_FILE="host.xml";
     private final String TASK_FILE="task.xml";
     private final String SPECTATOR_FILE="spectator.xml";
+    private final String USER_FILE="users.xml";
     private XmlMapper mapper=new XmlMapper();
 
     public void saveParticipants(List<Participant> participants){
@@ -124,6 +126,28 @@ public class XmlStorageService {
         } catch (IOException e) {
            System.out.println("Помилка читання файлу глядачів"+e.getMessage());
            return new ArrayList<>();
+        }
+     }
+
+     public void saveUsers(List<User> users){
+        try {
+            mapper.writeValue(new File(USER_FILE), users);
+            System.out.println("Файл про користувача збережено");
+        } catch (IOException e) {
+            System.out.println("Дані користувачів не було збережено: " + e.getMessage());
+        }
+     }
+
+     public List<User> loadUsers(){
+        File file=new File(USER_FILE);
+        if(!file.exists()){
+          return new ArrayList<>();
+        }
+        try {
+            return mapper.readValue(file,new TypeReference<List<User>>() {});
+        } catch (IOException e) {
+            System.out.println("Помилка читання файлу користувачів: " + e.getMessage());
+            return new ArrayList<>();
         }
      }
 }

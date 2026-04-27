@@ -1,6 +1,7 @@
 package com.university.festival_api.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize; 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,16 +20,19 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class JuryController {
     
-private final JuryService juryService;
+    private final JuryService juryService;
 
-public JuryController(JuryService juryService){
-    this.juryService=juryService;
-}
-  @GetMapping
+    public JuryController(JuryService juryService){
+        this.juryService=juryService;
+    }
+
+    @GetMapping
     public List<JuryMember> getAll(){
         return juryService.getAllJury();
     }
-  @PostMapping
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PostMapping
     public ResponseEntity<?> addNewJury(@RequestBody JuryMember member){
         try {
             JuryMember savedJuryMember=juryService.addJury(member);
@@ -38,6 +42,7 @@ public JuryController(JuryService juryService){
         }
     } 
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteJury(@PathVariable("id") String id){
         juryService.juryDelete(id);

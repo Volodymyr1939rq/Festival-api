@@ -11,9 +11,10 @@ interface SpectatorCardProps {
   hasVoted: boolean;
   onDelete: (id: string) => void;
   onVoteClick: (id: string) => void;
+  isAdmin?:boolean;
 }
 
-export default function SpectatorCard({ spectator, hasVoted, onDelete, onVoteClick }: SpectatorCardProps) {
+export default function SpectatorCard({ spectator, hasVoted, onDelete, onVoteClick,isAdmin}: SpectatorCardProps) {
   return (
     <div className="relative bg-[#111322] rounded-4xl shadow-2xl border border-white/10 overflow-hidden hover:border-pink-500/50 transition-colors group flex flex-col">
       <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-neutral-950 rounded-full border-l border-white/10"></div>
@@ -37,6 +38,7 @@ export default function SpectatorCard({ spectator, hasVoted, onDelete, onVoteCli
       <div className="p-4 bg-black/40 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-3">
           <QrCode size={36} className="text-neutral-600" />
+          {isAdmin && (
           <button 
             onClick={() => onDelete(spectator.id)}
             className="p-2 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 rounded-full transition-colors"
@@ -44,6 +46,7 @@ export default function SpectatorCard({ spectator, hasVoted, onDelete, onVoteCli
           >
             <Trash2 size={18} />
           </button>
+          )}
         </div>
 
         <button 

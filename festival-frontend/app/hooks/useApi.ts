@@ -1,53 +1,79 @@
 import { useCallback, useEffect, useState } from "react";
 
-export function useApi<T>(url:string){
-   const [data,setData]=useState<T[]>([])
-   const [loading,setLoading]=useState(true)
+export function useApi<T>(url: string) {
+    const [data, setData] = useState<T[]>([]);
+    const [loading, setLoading] = useState(true);
 
-   const fetchData=useCallback(async()=>{
-    setLoading(true)
-    try {
-        const res=await fetch(url)
-        const data=await res.json()
-        setData(data)
+    const getAuthHeaders = () => {
+     
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        
+        return {
+            'Content-Type': 'application/json',
+           
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+    };
 
-    } catch (error) {
-        console.error('Помилка завантаження журі',error)
-    }finally{
-        setLoading(false)
-    }
-   },[url])
-
-   useEffect(()=>{
-    fetchData()
-   },[fetchData])
-
-   const addItem=async(newItem:any)=>{
-    try {
-        const res=await fetch(url,{
-            method:"POST",
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify(newItem)
-        })
-        if(res.ok){
-            await fetchData()
-            return true
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(url, {
+                method: "GET",
+                headers: getAuthHeaders(),
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                setData(data);
+            } else if (res.status === 403 || res.status === 401) {
+                console.error('Помилка авторизації: Немає доступу до', url);
+            }
+        } catch (error) {
+            console.error('Помилка завантаження даних', error);
+        } finally {
+            setLoading(false);
         }
-    } catch (error) {
-        console.error('Помилка при додаванні журі',error)
-    }
-   }
+    }, [url]);
 
-   const handleDelete=async(id:string)=>{
-    try {
-        const res=await fetch(`${url}/${id}`,{method:"DELETE"})
-        if(res.ok){
-           await fetchData()
-           return true
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const addItem = async (newItem: any) => {
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: getAuthHeaders(), 
+                body: JSON.stringify(newItem)
+            });
+            if (res.ok) {
+                await fetchData();
+                return true;
+            } else {
+                console.error('Помилка сервера при додаванні', res.status);
+            }
+        } catch (error) {
+            console.error('Помилка при додаванні', error);
         }
-    } catch (error) {
-        console.error('Помилка при видаденні користувача',error)
-    }
-   }
-   return {data,loading,addItem,handleDelete}
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            const res = await fetch(`${url}/${id}`, {
+                method: "DELETE",
+                headers: getAuthHeaders(), 
+            });
+            if (res.ok) {
+                await fetchData();
+                return true;
+            } else {
+                console.error('Помилка сервера при видаленні', res.status);
+            }
+        } catch (error) {
+            console.error('Помилка при видаленні користувача', error);
+        }
+    };
+
+    return { data, loading, addItem, handleDelete };
 }

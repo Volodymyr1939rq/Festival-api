@@ -41,7 +41,7 @@ export default function AddJuryForm({ addItem, onSuccess }: AddJuryFormProps) {
     if (success) {
       reset()
       setPhotoBase64("")
-      onSuccess() // Закриваємо форму на головній сторінці
+      onSuccess() 
     } else {
       setError('Кількість суддів не може бути більшою за 7. Журі укомплектовано!')
     }

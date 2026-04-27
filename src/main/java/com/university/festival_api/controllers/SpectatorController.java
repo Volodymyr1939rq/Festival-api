@@ -2,6 +2,7 @@ package com.university.festival_api.controllers;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,10 +25,12 @@ public class SpectatorController {
 
     @GetMapping
     public List<Spectator> getAllSpectators(){return spectatorService.getAllSpectators();}
-
+    
+    @PreAuthorize("hasAuthority(ROLE_ADMIN)")
     @PostMapping
     public Spectator addSpectator(@RequestBody Spectator spectator){return spectatorService.addSpectator(spectator);}
-
+    
+    @PreAuthorize("hasAuthority(ROLE_ADMIN)")
     @DeleteMapping("/{id}")
     public void deleteSpectator(@PathVariable("id") String id){spectatorService.deleteSpectator(id);}
 }

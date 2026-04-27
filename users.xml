@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArrayList>
+    <item>
+        <id>1</id>
+        <username>admin</username>
+        <password>$2a$10$Tr8GTSPU.uf14Et9wCpDgO6h20otMG8Vwe4tUKMvpm41ks3SvnmSi</password>
+        <role>ROLE_ADMIN</role>
+    </item>
+</ArrayList>

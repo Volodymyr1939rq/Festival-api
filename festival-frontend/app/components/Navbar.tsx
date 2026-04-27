@@ -6,7 +6,7 @@ import { Heart, User } from "lucide-react"
 
 export default function Navbar() {
     const pathname = usePathname()
-
+    
     const navLinks = [
         { name: 'Учасники', href: '/' },
         { name: 'Журі', href: '/jury' },
@@ -53,13 +53,18 @@ export default function Navbar() {
                 </nav>
 
                 <div className="flex items-center justify-end gap-6 min-w-50">
-                    <button className="text-white/80 hover:text-white transition-colors hidden sm:block">
+                    <Link href={'/auth'}
+                    className="text-white/80 hover:text-white transition-colors hidden sm:block"
+                    title="Увійти">
+
                         <User size={22} strokeWidth={2.5} />
-                    </button>
-                    
-                    <button className="bg-white text-neutral-900 hover:bg-neutral-200 px-6 py-2.5 rounded-full text-sm font-extrabold transition-colors shadow-md whitespace-nowrap">
-                        Мій профіль
-                    </button>
+                    </Link>
+                    <Link 
+        href="/auth"
+        className="bg-white text-neutral-900 hover:bg-neutral-200 px-6 py-2.5 rounded-full text-sm font-extrabold transition-colors shadow-md whitespace-nowrap"
+    >
+        Мій профіль
+    </Link>
                 </div>
                 
             </div>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 
 interface Prize{
@@ -29,13 +30,20 @@ export function useParticipants() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loader, setLoader] = useState(true);
   const [isJuryReady, setIsJuryReady] = useState<boolean>(false);
-
+  
+  const getAuthHeaders=()=>{
+    const token=typeof window !== "undefined" ? localStorage.getItem('token'):null
+    return {
+      'Content-Type':'application/json',
+      ...(token ? {'Authorization':`Bearer ${token}`}:{})
+    }
+  }
   const fetchData = useCallback(async () => {
     setLoader(true);
     try {
       const [partRes, juryRes] = await Promise.all([
-        fetch(API_URL),
-        fetch(process.env.NEXT_PUBLIC_API_URL + '/api/jury/ready')
+        fetch(API_URL,{headers:getAuthHeaders()}),
+        fetch(process.env.NEXT_PUBLIC_API_URL + '/api/jury/ready',{headers:getAuthHeaders()})
       ]);
       
       if (partRes.ok) setParticipants(await partRes.json());
@@ -55,7 +63,7 @@ export function useParticipants() {
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(newParticipant),
       });
       if (res.ok) {
@@ -72,7 +80,7 @@ export function useParticipants() {
     try {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(updatedData)
       });
       if (res.ok) {
@@ -89,7 +97,7 @@ export function useParticipants() {
   try {
     const res = await fetch(`${API_URL}/eurovision-evaluate`, {
       method: "POST",
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
     
@@ -118,7 +126,7 @@ export function useParticipants() {
 
   const deleteParticipant = async (id: string) => {
     try {
-      const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' ,headers:getAuthHeaders()});
       if (res.ok) {
         await fetchData();
         return true;
@@ -131,7 +139,7 @@ export function useParticipants() {
 
   const conductAllocationDraw=async ()=>{
     try {
-       const res=await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/participants/draw',{method:'POST'})
+       const res=await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/participants/draw',{method:'POST',headers:getAuthHeaders()})
          if(res.ok){
           const updatedParticipants=await res.json()
           setParticipants(updatedParticipants)
@@ -146,7 +154,10 @@ export function useParticipants() {
 
   const getGrandFinalist=async()=>{
     try {
-      const res=await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/participants/finalists')
+      const res=await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/participants/finalists',{
+        headers:getAuthHeaders()
+      }
+      )
       if(res.ok){
         return await res.json()
       }

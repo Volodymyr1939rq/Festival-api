@@ -8,9 +8,10 @@ interface ParticipantCardProps {
   participant: Participant;
   onEdit: (p: Participant) => void;
   onDelete: (p: Participant) => void;
+  isAdmin?:boolean;
 }
 
-export default function ParticipantCard({ participant: p, onEdit, onDelete }: ParticipantCardProps) {
+export default function ParticipantCard({ participant: p, onEdit, onDelete,isAdmin }: ParticipantCardProps) {
   return (
     <div className="relative group rounded-4xl overflow-hidden aspect-2/3 shadow-2xl transition-all duration-500 hover:scale-[1.02] bg-[#050505]">
 
@@ -32,7 +33,7 @@ export default function ParticipantCard({ participant: p, onEdit, onDelete }: Pa
         )}
         <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity"></div>
       </div>
-
+       {isAdmin && (
       <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-40 transform translate-x-2 group-hover:translate-x-0">
         <button onClick={() => onEdit(p)} className="p-3 bg-white/10 hover:bg-blue-500 backdrop-blur-md rounded-full text-white transition-all">
           <Pencil size={18} />
@@ -41,6 +42,7 @@ export default function ParticipantCard({ participant: p, onEdit, onDelete }: Pa
           <Trash2 size={18} />
         </button>
       </div>
+       )}
 
       <div className="absolute inset-x-0 bottom-0 p-5 md:p-7 flex flex-col items-center z-30 pointer-events-none">
         <h2 className="text-3xl md:text-4xl font-black text-white text-center uppercase tracking-tighter mb-4 drop-shadow-2xl">
